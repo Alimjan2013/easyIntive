@@ -1,122 +1,119 @@
-"use client";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
-import { useRouter } from 'next/navigation';
+import Link from "next/link";
+import { headers } from "next/headers";
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
+import { SubmitButton } from "./submit-button";
 
+export default function Login({
+  searchParams,
+}: {
+  searchParams: { message: string };
+}) {
+  const signIn = async (formData: FormData) => {
+    "use server";
 
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const supabase = createClient();
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-export default function LoginCard() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+    if (error) {
+      return redirect("/login?message=Could not authenticate user");
+    }
 
-  const { toast } = useToast();
-  const router = useRouter();
-
-
-  const login = (event: any) => {
-    setLoading(true);
-    event.preventDefault();
-
-    fetch(
-      "https://sealcutting.jadefoci.com/utype-api-develop/v1/admin/user/login",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: username,
-          password: password,
-        }),
-      }
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.error_code === 0) {
-            setLoading(false);
-          // Login was successful
-          const { username, user_type, access_token, refresh_token } =
-            data.data;
-
-          toast({
-            variant: "default",
-            title: `${username}, 登陆成功`,
-            description: `以 ${user_type} 身份登陆成功`,
-          });
-
-          localStorage.setItem('access_token', access_token);
-          localStorage.setItem('refresh_token', refresh_token);
-          router.push('/');
-
-
-          // You can now store the tokens and use them for future requests
-        } else {
-            setLoading(false);
-          // Handle error
-          toast({
-            variant: "destructive",
-            title: "登陆失败",
-            description: data.msg + ` (code: ${data.error_code})`,
-          });
-          console.log(`Error: ${data.msg} (code: ${data.error_code})`);
-        }
-      })
-      .catch((error) => {
-        setLoading(false);
-        console.error("Error:", error);
-      });
+    return redirect("/");
   };
+
+  const signUp = async (formData: FormData) => {
+    "use server";
+
+    const origin = headers().get("origin");
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const supabase = createClient();
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      return redirect("/login?message=Could not authenticate user");
+    }
+
+    return redirect("/login?message=Check email to continue sign in process");
+  };
+
   return (
-    <div className="flex items-center justify-center w-full h-full bg-slate-300">
-      <Card className="mx-auto max-w-sm min-w-80">
-        <CardHeader>
-          <CardTitle className="text-2xl">后台登陆</CardTitle>
-          <CardDescription>请联系管理员获取账号密码</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={login} className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="username">用户名</Label>
-              <Input
-                id="username"
-                placeholder="请输入用户名"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </div>
-            <div className="grid gap-2">
-              <div className="flex items-center">
-                <Label htmlFor="password">密码</Label>
-              </div>
-              <Input
-                placeholder="请输入密码"
-                id="password"
-                type="password"
-              
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <Button  disabled={loading} type="submit" className="w-full">
-              登陆{loading? '中...': ''}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+    <div className="flex-1 flex flex-col w-full px-8 sm:max-w-md justify-center  gap-2">
+      <Link
+        href="/"
+        className="absolute left-8 top-8 py-2 px-4 rounded-md no-underline text-foreground bg-btn-background hover:bg-btn-background-hover flex items-center group text-sm"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1"
+        >
+          <polyline points="15 18 9 12 15 6" />
+        </svg>{" "}
+        Back
+      </Link>
+
+      <form className="animate-in flex-1 flex flex-col w-full justify-center  gap-2 text-foreground">
+        <label className="text-md" htmlFor="email">
+          Email
+        </label>
+        <input
+          className="rounded-md px-4 py-2 bg-inherit border mb-6"
+          name="email"
+          placeholder="you@example.com"
+          required
+        />
+        <label className="text-md" htmlFor="password">
+          Password
+        </label>
+        <input
+          className="rounded-md px-4 py-2 bg-inherit border mb-6"
+          type="password"
+          name="password"
+          placeholder="••••••••"
+          required
+        />
+        <SubmitButton
+          variant="default"
+          formAction={signIn}
+          pendingText="Signing In..."
+        >
+          Sign In
+        </SubmitButton>
+        <SubmitButton
+          variant="secondary"
+          formAction={signUp}
+          pendingText="Signing Up..."
+        >
+          Sign Up
+        </SubmitButton>
+        {searchParams?.message && (
+          <p className="mt-4 p-4 bg-foreground/10 text-foreground text-center">
+            {searchParams.message}
+          </p>
+        )}
+      </form>
     </div>
   );
 }

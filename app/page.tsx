@@ -1,22 +1,25 @@
-"use client";
 import Image from "next/image";
+import AuthButton from "@/components/AuthButton";
+import { createClient } from "@/utils/supabase/server";
+
 import CodeForm from "./Form";
 import CodeTable from "./table";
 import { redirect } from "next/navigation";
-import { useState, useEffect } from "react";
+// import { useState, useEffect } from "react";
 import { CodeList } from "@/lib/typeface";
 
-export default function Home() {
-  let token: string | null = null;
+export default async function Home() {
+  const supabase = createClient();
 
-  if (typeof window !== "undefined") {
-    token = window.localStorage.getItem("access_token");
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return redirect("/login");
   }
 
-  if (token === null) {
-    redirect("/login");
-  }
-  const [codeList, setCodeList] = useState<CodeList[]>([]);
+  // const [codeList, setCodeList] = useState<CodeList[]>([]);
 
   function fetchCodeList() {
     let count = 100; // replace with your value
@@ -28,7 +31,7 @@ export default function Home() {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Basic " + btoa(token + ":"),
+          Authorization: "Basic " + btoa(  ":"),
         },
       }
     )
@@ -36,7 +39,7 @@ export default function Home() {
       .then((data) => {
         if (data.msg === "success") {
           // Display success toast
-          setCodeList(data.invitation_codes.rows as CodeList[]);
+          // setCodeList(data.invitation_codes.rows as CodeList[]);
         } else {
           console.error("Error:", data.msg);
           // Display failure toast
@@ -52,15 +55,16 @@ export default function Home() {
     fetchCodeList();
   }
 
-  useEffect(() => {
-    fetchCodeList();
-  }, []);
+  // useEffect(() => {
+  //   fetchCodeList();
+  // }, []);
 
 
   return (
     <div className="flex flex-row h-full gap-2">
-      <CodeForm onResponse={handleResponse} />
-      <CodeTable codeList={codeList} onResponse={handleResponse}/>
+      {/* <CodeForm onResponse={handleResponse} /> */}
+      {/* <CodeTable codeList={codeList} onResponse={handleResponse}/> */}
+      <AuthButton />
     </div>
   );
 }
