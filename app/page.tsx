@@ -1,7 +1,5 @@
-import Image from "next/image";
-import AuthButton from "@/components/AuthButton";
+// "use client"
 import { createClient } from "@/utils/supabase/server";
-
 import CodeForm from "./Form";
 import CodeTable from "./table";
 import { redirect } from "next/navigation";
@@ -62,9 +60,8 @@ export default async function Home() {
 
   return (
     <div className="flex flex-row h-full gap-2">
-      {/* <CodeForm onResponse={handleResponse} /> */}
-      {/* <CodeTable codeList={codeList} onResponse={handleResponse}/> */}
-      <AuthButton />
+      <CodeForm/>
+      {/* <CodeTable codeList={codeList} onResponse={handleResponse}/>  */}
     </div>
   );
 }

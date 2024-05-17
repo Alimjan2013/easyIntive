@@ -46,7 +46,8 @@ const formSchema = z.object({
   ),
 });
 
-export default function CodeForm({onResponse}: {onResponse: () => void}){
+// export default function CodeForm({onResponse}: {onResponse: () => void}){
+  export default function CodeForm(){
   const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -79,7 +80,7 @@ export default function CodeForm({onResponse}: {onResponse: () => void}){
       .then((data) => {
         if (data.msg === "success") {
           // Display success toast
-          onResponse()
+          // onResponse()
           toast({
             variant: "default",
             title: "生成成功",
